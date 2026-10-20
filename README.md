@@ -1,6 +1,52 @@
-# GodPrompt MCP Server
+# GodPrompt MCP Server & Antigravity Plugin
 
-A [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server for [GodPrompt](https://github.com/AKzar1el/god-prompt) — AI software-development workflow guidance with task routing, TDD, debugging protocols, verification gates, and progressive disclosure.
+[![Sync Upstream](https://github.com/administrakt0r/god-prompt-antigravity/actions/workflows/sync-upstream.yml/badge.svg)](https://github.com/administrakt0r/god-prompt-antigravity/actions/workflows/sync-upstream.yml)
+[![Upstream](https://img.shields.io/badge/Upstream-AKzar1el%2Fgod--prompt--mcp-blue)](https://github.com/AKzar1el/god-prompt-mcp)
+[![Antigravity](https://img.shields.io/badge/Antigravity-Plugin%20Ready-green)](https://antigravity.google)
+
+A [Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server and Agent Plugin for [Google Antigravity](https://antigravity.google), OpenAI Codex, Claude Code, ChatGPT, and Cursor based on [GodPrompt](https://github.com/AKzar1el/god-prompt) by Tomi Šeregi.
+
+This repository tracks upstream [`AKzar1el/god-prompt-mcp`](https://github.com/AKzar1el/god-prompt-mcp) automatically via GitHub Actions and packages it with native **Google Antigravity Agent (`@GodPrompt`)** and plugin support.
+
+---
+
+## ⚡ Google Antigravity Setup
+
+### 1. Installation
+
+Clone this repository directly into your Antigravity global plugins directory:
+
+```bash
+git clone https://github.com/administrakt0r/god-prompt-antigravity.git ~/.gemini/config/plugins/god-prompt
+```
+
+Antigravity will automatically detect the plugin, register the `@GodPrompt` agent, and discover the `god-prompt` skills.
+
+### 2. How to Use in Antigravity
+
+In any conversation or task, type `@GodPrompt` followed by your prompt:
+
+```text
+@GodPrompt implement user authentication with JWT and write tests
+```
+```text
+@GodPrompt debug this failing test and fix only the root cause
+```
+```text
+@GodPrompt review this PR for regressions, scope creep, and missing verification
+```
+
+### 3. How Upstream Sync Works
+
+This repository stays continuously up to date with the original author's repository:
+1. **GitHub Actions Auto-Sync**: The workflow at [`.github/workflows/sync-upstream.yml`](.github/workflows/sync-upstream.yml) runs daily to merge upstream releases into this repository.
+2. **Local 1-Command Update**: Whenever you want to update your local installation, run:
+   ```bash
+   ~/.gemini/config/plugins/god-prompt/update.sh
+   ```
+3. **Always-Fresh MCP Tools**: The bundled `mcp_config.json` uses `npx -y god-prompt-mcp@latest` so MCP tools run the newest package on demand.
+
+---
 
 [![MCPVault: verified](https://mcpvault.io/badge/god-prompt-mcp.svg)](https://mcpvault.io/servers/god-prompt-mcp/health?utm_source=external_badge&utm_medium=referral&utm_campaign=mcp_health_report)
 

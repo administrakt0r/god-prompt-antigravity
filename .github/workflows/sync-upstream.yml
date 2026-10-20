@@ -1,0 +1,42 @@
+name: Sync Upstream
+
+on:
+  schedule:
+    # Run daily at 04:00 UTC
+    - cron: '0 4 * * *'
+  workflow_dispatch: # Enable manual trigger from GitHub Actions UI
+
+permissions:
+  contents: write
+
+jobs:
+  sync:
+    name: Sync with AKzar1el/god-prompt-mcp
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Fetch upstream
+        run: |
+          git remote add upstream https://github.com/AKzar1el/god-prompt-mcp.git || true
+          git fetch upstream main
+
+      - name: Merge upstream
+        run: |
+          git merge upstream/main -m "chore(sync): automated merge from upstream (AKzar1el/god-prompt-mcp)" || {
+            echo "Merge conflict encountered during sync. Manual review required."
+            exit 1
+          }
+
+      - name: Push updates
+        run: |
+          git push origin main

@@ -6,10 +6,10 @@ echo "Updating GodPrompt plugin in ${PLUGIN_DIR}..."
 
 cd "${PLUGIN_DIR}"
 
-# Fetch latest changes from upstream
-git fetch origin main
+# Fetch latest changes from original creator
+git fetch upstream main
 
-# Rebase local commits (agent & Antigravity configs) on top of upstream main
-git rebase origin/main
+# Rebase local commits (Antigravity configs & agent) on top of upstream main
+git rebase upstream/main
 
 echo "GodPrompt successfully updated to latest $(git rev-parse --short HEAD)!"
