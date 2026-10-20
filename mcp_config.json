@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "god-prompt-mcp": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "god-prompt-mcp@latest"
+      ]
+    }
+  }
+}
