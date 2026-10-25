@@ -167,7 +167,8 @@ test("keeps privacy copy aligned with local and hosted transports", () => {
 
 test("uses the split MCP SDK v2 without the Workers-only Agents SDK", () => {
   assert.equal(packageJson.dependencies?.["@modelcontextprotocol/sdk"], undefined);
-  assert.equal(packageJson.dependencies?.["@modelcontextprotocol/server"], "2.1.0");
+  assert.equal(packageJson.dependencies?.["@modelcontextprotocol/server"], "2.3.0");
+  assert.equal(packageJson.dependencies?.zod, "^4.6.7");
   assert.equal(packageJson.dependencies?.agents, undefined);
   assert.equal(packageJson.devDependencies?.agents, undefined);
 });
@@ -440,6 +441,47 @@ test("requires portable-skill execution quiescence before conflicting takeover",
   assert.match(agentSkill, /verify current attributable liveness\/ownership from the real process\/session\/lease state/i);
 });
 
+test("respects user-reserved actions and actual destructive targets in the portable skill", () => {
+  assert.match(agentSkill, /User-action reservation guard/i);
+  assert.match(agentSkill, /do not race, duplicate/i);
+  assert.match(agentSkill, /re-read the affected state/i);
+  assert.match(agentSkill, /Effective destructive-target guard/i);
+  assert.match(agentSkill, /actual execution root\/worktree and effective targets/i);
+  assert.match(agentSkill, /after relevant argument, variable, glob, and shell\/path expansion/i);
+  assert.match(agentSkill, /intended approval\/policy guard covers that exact tool and execution path/i);
+  assert.match(agentSkill, /destructive cleanup foreground and observable/i);
+});
+
+test("preserves independent rollback recovery artifacts in the portable skill", () => {
+  assert.match(agentSkill, /Rollback-recovery preservation guard/i);
+  assert.match(agentSkill, /reverse only the minimum necessary scope/i);
+  assert.match(agentSkill, /pre-existing backups, snapshots, object version history/i);
+  assert.match(agentSkill, /separate, explicit target-specific authorization/i);
+});
+
+test("binds lifecycle-hook changes to host-side effects in the portable skill", () => {
+  assert.match(agentSkill, /Lifecycle-hook update provenance guard/i);
+  assert.match(agentSkill, /effective hooks and host-side commands, arguments, execution identity/i);
+  assert.match(agentSkill, /outside the model-visible tool\/approval plane/i);
+  assert.match(agentSkill, /explicit scope-bound authority/i);
+});
+
+test("binds live effective execution policy to the actual receiving session", async () => {
+  assert.match(agentSkill, /Live execution-policy integrity guard/i);
+  assert.match(agentSkill, /effective permission\/approval mode/i);
+  assert.match(agentSkill, /receiving session\/thread actually governing the current call/i);
+  assert.match(agentSkill, /Do not silently transfer or broaden/i);
+  const generated = await readFile(new URL("../src/content.ts", import.meta.url), "utf8");
+  assert.equal([...generated.matchAll(/Live execution-policy integrity guard/g)].length, 2);
+  const scoped = await readFile(
+    new URL("../distribution/openai/skills/god-prompt/SKILL.md", import.meta.url),
+    "utf8"
+  );
+  assert.match(scoped, /actual receiving session's live/i);
+  assert.match(scoped, /delegated handoffs or cross-thread messages/i);
+  assert.match(scoped, /stop and\s+reconcile them before proceeding/i);
+});
+
 test("keeps the Amp skill-scoped MCP surface pinned and aligned with the registered server tools", () => {
   const registeredToolNames = [
     ...serverSource.matchAll(/server\.registerTool\(\s*"([^"]+)"/g),
@@ -547,7 +589,51 @@ test("serves MCP statelessly while preserving the historical Durable Object name
       class_name: "GodPromptMCP",
     },
   ]);
-  assert.match(workerSource, /createMcpHandler\(createServer\)/);
+  assert.match(workerSource, /createMcpHandler\(createServer,\s*\{/);
+  assert.match(workerSource, /maxRequestBodySize:\s*1024\s*\*\s*1024/);
+  assert.match(workerSource, /maxToolInputElements:\s*2048/);
   assert.match(workerSource, /export class GodPromptMCP/);
   assert.doesNotMatch(workerSource, /McpAgent|\.serve\(/);
+});
+
+
+test("binds release provenance and installability across all skill surfaces", async () => {
+  assert.match(agentSkill, /Release source-to-artifact provenance guard/i);
+  assert.match(agentSkill, /Reconcile dirty, untracked, or generated inputs explicitly/i);
+  assert.match(agentSkill, /artifact actually published or receiving traffic/i);
+  assert.match(agentSkill, /STOP consequential rollout/i);
+  const generated = await readFile(new URL("../src/content.ts", import.meta.url), "utf8");
+  assert.equal([...generated.matchAll(/Release source-to-artifact provenance guard/g)].length, 2);
+  const scoped = await readFile(
+    new URL("../distribution/openai/skills/god-prompt/SKILL.md", import.meta.url),
+    "utf8"
+  );
+  assert.match(scoped, /For a release or deployment, bind build inputs/i);
+  assert.match(scoped, /retrieve\/install\/safely canary each claimed platform/i);
+  assert.match(scoped, /report the exact unverified state instead of claiming a successful release/i);
+});
+
+test("requires user review checkpoints across generated MCP and Agent Skills", async () => {
+  assert.match(agentSkill, /User review\/checkpoint guard/i);
+  assert.match(agentSkill, /hard precondition/i);
+  const generated = await readFile(new URL("../src/content.ts", import.meta.url), "utf8");
+  assert.equal([...generated.matchAll(/User review\/checkpoint guard/g)].length, 2);
+  const scoped = await readFile(
+    new URL("../distribution/openai/skills/god-prompt/SKILL.md", import.meta.url),
+    "utf8"
+  );
+  assert.match(scoped, /review checkpoint before a send/i);
+  assert.match(scoped, /expressly\s+authorizes the specific action/i);
+});
+test("fences delegated control-plane mutation across generated and scoped skills", async () => {
+  assert.match(agentSkill, /Delegated control-plane target guard/i);
+  assert.match(agentSkill, /rejected self-target action is not permission/i);
+  const generated = await readFile(new URL("../src/content.ts", import.meta.url), "utf8");
+  assert.equal([...generated.matchAll(/Delegated control-plane target guard/g)].length, 2);
+  const scoped = await readFile(
+    new URL("../distribution/openai/skills/god-prompt/SKILL.md", import.meta.url),
+    "utf8"
+  );
+  assert.match(scoped, /delegated child must not archive/i);
+  assert.match(scoped, /never redirect a rejected self-target action/i);
 });

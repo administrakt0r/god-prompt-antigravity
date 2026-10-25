@@ -1,6 +1,6 @@
 {
   "name": "god-prompt-mcp",
-  "version": "1.0.33",
+  "version": "1.0.37",
   "mcpName": "io.github.AKzar1el/god-prompt-mcp",
   "description": "GodPrompt MCP server + portable Agent Skill for coding agents — TDD, debugging, verification gates, task routing, and progressive disclosure.",
   "private": false,
@@ -68,12 +68,16 @@
     "generate-content": "node scripts/generate-content.mjs"
   },
   "dependencies": {
-    "@modelcontextprotocol/server": "2.1.0",
-    "zod": "^4.2.0"
+    "@modelcontextprotocol/server": "2.3.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260918.1",
     "typescript": "^5.7.3",
     "wrangler": "^4.135.0"
+  },
+  "overrides": {
+    "undici": "7.30.1",
+    "sharp": "0.35.5"
   }
 }

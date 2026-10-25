@@ -111,6 +111,31 @@ test("requires scoped OpenAI execution quiescence before conflicting takeover", 
   assert.match(skill, /stop rather than killing uncertain work/i);
 });
 
+test("respects user manual actions and resolved destructive targets in scoped OpenAI skill", () => {
+  assert.match(skill, /reserves a consequential or destructive step for their own manual execution/i);
+  assert.match(skill, /do not race, duplicate, or pre-empt/i);
+  assert.match(skill, /re-read the affected state/i);
+  assert.match(skill, /actual execution root or worktree/i);
+  assert.match(skill, /effective target paths after argument, variable, glob, and shell\/path expansion/i);
+  assert.match(skill, /approval or policy guard\s+applies to the exact tool and execution path/i);
+  assert.match(skill, /destructive cleanup foreground and observable/i);
+});
+
+test("preserves pre-existing recovery artifacts during scoped OpenAI rollback", () => {
+  assert.match(skill, /reverse only the minimum attributable current/i);
+  assert.match(skill, /pre-existing backups, snapshots, object version history/i);
+  assert.match(skill, /separate explicit target-specific authorization/i);
+  assert.match(skill, /stop for reconciliation/i);
+});
+
+test("requires explicit hook effect provenance in the scoped OpenAI skill", () => {
+  assert.match(skill, /lifecycle or event hooks/i);
+  assert.match(skill, /effective hook commands, arguments, execution identity/i);
+  assert.match(skill, /outside the\s+model-visible tool\/approval plane/i);
+  assert.match(skill, /explicit scope-bound authority/i);
+  assert.match(skill, /stop before activation/i);
+});
+
 test("contains the minimum five positive and three negative directory review cases", () => {
   assert.equal(reviewTests.positive.length, 5);
   assert.equal(reviewTests.negative.length, 3);
