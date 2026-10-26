@@ -637,3 +637,156 @@ test("fences delegated control-plane mutation across generated and scoped skills
   assert.match(scoped, /delegated child must not archive/i);
   assert.match(scoped, /never redirect a rejected self-target action/i);
 });
+
+test("keeps mixed notification user origin separate across distribution surfaces", async () => {
+  assert.match(agentSkill, /Mixed notification\/user-turn provenance guard/i);
+  assert.match(agentSkill, /Do not classify the entire message as automated/i);
+  assert.match(agentSkill, /trusted channel\/event-origin evidence/i);
+  assert.match(agentSkill, /ask the user to resend it in a distinct turn/i);
+  const generated = await readFile(new URL("../src/content.ts", import.meta.url), "utf8");
+  assert.equal([...generated.matchAll(/Mixed notification\/user-turn provenance guard/g)].length, 2);
+  const scoped = await readFile(
+    new URL("../distribution/openai/skills/god-prompt/SKILL.md", import.meta.url),
+    "utf8"
+  );
+  assert.match(scoped, /Do not discard a verified human request/i);
+  assert.match(scoped, /trusted event\/channel-origin evidence/i);
+  assert.match(scoped, /STOP consequential effects/i);
+});
+
+
+test("bounds inspection and delegation overhead across generated MCP and skills", async () => {
+  assert.match(agentSkill, /Bounded inspection and delegation economy/i);
+  assert.match(agentSkill, /cap output and prefer targeted searches/i);
+  assert.match(agentSkill, /fixed per-child context\/tool overhead/i);
+  const generated = await readFile(new URL("../src/content.ts", import.meta.url), "utf8");
+  assert.equal([...generated.matchAll(/Bounded inspection and delegation economy/g)].length, 2);
+  const scoped = await readFile(new URL("../distribution/openai/skills/god-prompt/SKILL.md", import.meta.url), "utf8");
+  assert.match(scoped, /begin with the requested files, symbols, failing tests/i);
+  assert.match(scoped, /distinct bounded objectives and ownership/i);
+  assert.match(scoped, /Never skip required safety, compliance, or/i);
+});
+
+test("requires actual delegated child MCP capability readiness across distributions", async () => {
+  assert.match(agentSkill, /Delegated child capability readiness/i);
+  assert.match(agentSkill, /actual child\/session/i);
+  assert.match(agentSkill, /harmless read-only probe when practical/i);
+  assert.match(agentSkill, /never fabricate a tool result/i);
+  const generated = await readFile(new URL("../src/content.ts", import.meta.url), "utf8");
+  assert.equal([...generated.matchAll(/Delegated child capability readiness/g)].length, 2);
+  assert.match(generated, /parent's working tools, inherited configuration/i);
+  const scoped = await readFile(new URL("../distribution/openai/skills/god-prompt/SKILL.md", import.meta.url), "utf8");
+  assert.match(scoped, /exact child\/session/i);
+  assert.match(scoped, /harmless read-only probe/i);
+  assert.match(scoped, /never fabricate results, borrow parent/i);
+});
+
+test("matches delegated result origin to dispatch across distributed skills", async () => {
+  assert.match(agentSkill, /Delegated result-to-dispatch provenance/i);
+  assert.match(agentSkill, /trusted dispatch\/task receipt/i);
+  assert.match(agentSkill, /independent task-scoped artifacts or postconditions/i);
+  const generated = await readFile(new URL("../src/content.ts", import.meta.url), "utf8");
+  assert.equal([...generated.matchAll(/Delegated result-to-dispatch provenance/g)].length, 2);
+  assert.match(generated, /actual child\/session origin/i);
+  assert.match(generated, /neither claim completion nor replay ambiguous work/i);
+  const scoped = await readFile(new URL("../distribution/openai/skills/god-prompt/SKILL.md", import.meta.url), "utf8");
+  assert.match(scoped, /trusted dispatch\/task receipt/i);
+  assert.match(scoped, /actual child\/session origin/i);
+  assert.match(scoped, /independently[\r\n ]+inspect task-scoped artifacts or postconditions/i);
+  assert.match(scoped, /neither claim completion nor replay ambiguous work/i);
+});
+
+test("verifies materialized delegated transcript artifacts across distributions", async () => {
+  assert.match(agentSkill, /Delegated artifact materialization integrity/i);
+  assert.match(agentSkill, /empty placeholder, missing target, or unrelated transcript/i);
+  assert.match(agentSkill, /independently verified alternate child artifact/i);
+  const generated = await readFile(new URL("../src/content.ts", import.meta.url), "utf8");
+  assert.equal([...generated.matchAll(/Delegated artifact materialization integrity/g)].length, 2);
+  assert.match(generated, /verify the actual task-bound file is accessible/i);
+  assert.match(generated, /STOP for reconciliation/i);
+  const scoped = await readFile(new URL("../distribution/openai/skills/god-prompt/SKILL.md", import.meta.url), "utf8");
+  assert.match(scoped, /zero-byte placeholder/i);
+  assert.match(scoped, /another child session transcript/i);
+  assert.match(scoped, /independently verified alternate child/i);
+  assert.match(scoped, /STOP before downstream handoff/i);
+});
+
+
+test("guards resumed worktree-isolated children across distributions", async () => {
+  assert.match(agentSkill, /Delegated worktree isolation continuity/i);
+  assert.match(agentSkill, /still-existing linked worktree, branch/);
+  assert.match(agentSkill, /STOP write-capable resume/);
+  const generated = await readFile(new URL("../src/content.ts", import.meta.url), "utf8");
+  assert.equal([...generated.matchAll(/Delegated worktree isolation continuity/g)].length, 2);
+  assert.match(generated, /shared\/main checkout/);
+  const scoped = await readFile(new URL("../distribution/openai/skills/god-prompt/SKILL.md", import.meta.url), "utf8");
+  assert.match(scoped, /linked worktree, branch and HEAD/);
+  assert.match(scoped, /redirect a resumed child to shared\/main/);
+  assert.match(scoped, /STOP write-capable resume/);
+});
+
+test("guards temporary verification workspaces against shared source aliases", async () => {
+  assert.match(agentSkill, /Verification workspace alias-safety guard/i);
+  assert.match(agentSkill, /Windows junctions\/reparse points/i);
+  assert.match(agentSkill, /prefer independent source copies/i);
+  const generated = await readFile(new URL("../src/content.ts", import.meta.url), "utf8");
+  assert.equal([...generated.matchAll(/Verification workspace alias-safety guard/g)].length, 2);
+  assert.match(generated, /application-managed cleanup directories/);
+  const scoped = await readFile(new URL("../distribution/openai/skills/god-prompt/SKILL.md", import.meta.url), "utf8");
+  assert.match(scoped, /Windows junction\/reparse points/i);
+  assert.match(scoped, /A separate-looking Temp project is not isolation/i);
+  assert.match(scoped, /verify physical targets and concurrent writers, or STOP/i);
+});
+
+test("guards user-directed shipping artifact scope across MCP distributions", async () => {
+  assert.match(agentSkill, /User-directed ship-artifact scope freeze/i);
+  assert.match(agentSkill, /unless the user explicitly amends the shipping scope/i);
+  const generated = await readFile(new URL("../src/content.ts", import.meta.url), "utf8");
+  assert.equal([...generated.matchAll(/User-directed ship-artifact scope freeze/g)].length, 2);
+  assert.match(generated, /Freeze the user-specified ready artifact/i);
+  const scoped = await readFile(new URL("../distribution/openai/skills/god-prompt/SKILL.md", import.meta.url), "utf8");
+  assert.match(scoped, /Intervening side questions, optional research/i);
+  assert.match(scoped, /restart costly delegated fact-checks/i);
+  assert.match(scoped, /unless the user explicitly amends shipping scope/i);
+  assert.match(scoped, /material correctness\/security risk, STOP/i);
+});
+
+test("preserves resumed model and effort fidelity across MCP distributions", async () => {
+  assert.match(agentSkill, /Resumed agent execution-profile fidelity/i);
+  assert.match(agentSkill, /effective model and effort/i);
+  assert.match(agentSkill, /never silently substitute models/i);
+  const generated = await readFile(new URL("../src/content.ts", import.meta.url), "utf8");
+  assert.equal([...generated.matchAll(/Resumed agent execution-profile fidelity/g)].length, 2);
+  assert.match(generated, /retained agent name or old launch banner/i);
+  const scoped = await readFile(new URL("../distribution/openai/skills/god-prompt/SKILL.md", import.meta.url), "utf8");
+  assert.match(scoped, /actual resumed model and effort/i);
+  assert.match(scoped, /A retained agent name or old launch banner/i);
+  assert.match(scoped, /Never silently substitute models, raise spend/i);
+});
+
+
+test("nominal read-only probes require verified non-mutating behavior across distributions", async () => {
+  assert.match(agentSkill, /Nominal read-only probe integrity/i);
+  assert.match(agentSkill, /A probe's name alone is not evidence/i);
+  assert.match(agentSkill, /report readiness unverified/i);
+  const generated = await readFile(new URL("../src/content.ts", import.meta.url), "utf8");
+  assert.equal([...generated.matchAll(/Nominal read-only probe integrity/g)].length, 2);
+  assert.match(generated, /lock, or backup files/i);
+  const scoped = await readFile(new URL("../distribution/openai/skills/god-prompt/SKILL.md", import.meta.url), "utf8");
+  assert.match(scoped, /a CLI command called/i);
+  assert.match(scoped, /Such a test does not verify live credentials/i);
+  assert.match(scoped, /scope-authorized write/i);
+  assert.match(scoped, /report readiness unverified/i);
+});
+test("binds externalized MCP tool results to their own calls across distributions", async () => {
+  assert.match(agentSkill, /Direct MCP result-artifact identity guard/i);
+  assert.match(agentSkill, /same timestamp-derived path/i);
+  assert.match(agentSkill, /do not replay an uncertain mutating call/i);
+  const generated = await readFile(new URL("../src/content.ts", import.meta.url), "utf8");
+  assert.equal([...generated.matchAll(/Direct MCP result-artifact identity guard/g)].length, 2);
+  assert.match(generated, /call-distinct artifacts/i);
+  const scoped = await readFile(new URL("../distribution/openai/skills/god-prompt/SKILL.md", import.meta.url), "utf8");
+  assert.match(scoped, /another call's result/i);
+  assert.match(scoped, /STOP downstream effects/i);
+  assert.match(scoped, /never blindly replay an uncertain mutating call/i);
+});

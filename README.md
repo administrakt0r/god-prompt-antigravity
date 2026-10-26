@@ -291,7 +291,7 @@ npx -y skills@latest add AKzar1el/god-prompt-mcp --skill god-prompt --agent droi
 Droid discovers compatible project skills under `.agents/skills/`. To add the callable GodPrompt tools as a local stdio MCP server, use Droid's native MCP command with the published version pinned:
 
 ```bash
-droid mcp add god-prompt "npx -y god-prompt-mcp@1.0.37"
+droid mcp add god-prompt "npx -y god-prompt-mcp@1.0.42"
 ```
 
 Open `/mcp` in Droid to verify the server and available tools. The Agent Skill supplies the reusable workflow while MCP exposes GodPrompt's seven progressive-disclosure tools. Node.js 22+ is required for the MCP server.
@@ -317,7 +317,7 @@ npx -y skills@latest add AKzar1el/god-prompt-mcp --skill god-prompt --agent goos
 Goose discovers the copied skill under `.goose/skills/god-prompt/`. To expose GodPrompt's callable tools for a session, start Goose with the published MCP package as an external stdio extension:
 
 ```bash
-goose session --with-extension "npx -y god-prompt-mcp@1.0.37"
+goose session --with-extension "npx -y god-prompt-mcp@1.0.42"
 ```
 
 Goose currently treats Agent Skills and MCP extensions as separate native surfaces, so this path does not depend on Agent Plugins support. The skill supplies the reusable workflow while MCP exposes GodPrompt's seven progressive-disclosure tools. Node.js 22+ is required for the MCP server.
@@ -382,7 +382,7 @@ The Trae target installs the skill under `.trae/skills/god-prompt/`, where TraeC
   "mcpServers": {
     "god-prompt": {
       "command": "npx",
-      "args": ["-y", "god-prompt-mcp@1.0.37"]
+      "args": ["-y", "god-prompt-mcp@1.0.42"]
     }
   }
 }
@@ -401,7 +401,7 @@ npx -y skills@latest add AKzar1el/god-prompt-mcp --skill god-prompt --agent open
 The copied skill lands under `.agents/skills/god-prompt/`, one of OpenClaw's documented project skill roots. To expose GodPrompt's callable tools to OpenClaw-managed agent runtimes as well, register the published stdio server:
 
 ```bash
-openclaw mcp add god-prompt --command npx --arg -y --arg god-prompt-mcp@1.0.37
+openclaw mcp add god-prompt --command npx --arg -y --arg god-prompt-mcp@1.0.42
 openclaw mcp probe god-prompt
 ```
 
@@ -422,7 +422,7 @@ The Qoder target installs the skill under `.qoder/skills/god-prompt/`, where Qod
   "mcpServers": {
     "god-prompt": {
       "command": "npx",
-      "args": ["-y", "god-prompt-mcp@1.0.37"]
+      "args": ["-y", "god-prompt-mcp@1.0.42"]
     }
   }
 }
@@ -462,7 +462,7 @@ Kimi Code CLI can install GodPrompt as one native custom plugin containing the e
 /reload
 ```
 
-The Kimi manifest points at `skills/`, so the `god-prompt` skill remains available through Kimi's normal relevance-based skill loading instead of being forced into every session. The same manifest exposes `god-prompt-mcp@1.0.37` as a local stdio MCP server, preserving the seven progressive-disclosure tools. The explicit `tree/main` URL matters because Kimi's bare GitHub-repository install form prefers the latest GitHub release; using `main` makes the current plugin manifest available without forcing a documentation-only npm/MCP Registry release. Node.js 22+ is required for the MCP server.
+The Kimi manifest points at `skills/`, so the `god-prompt` skill remains available through Kimi's normal relevance-based skill loading instead of being forced into every session. The same manifest exposes `god-prompt-mcp@1.0.42` as a local stdio MCP server, preserving the seven progressive-disclosure tools. The explicit `tree/main` URL matters because Kimi's bare GitHub-repository install form prefers the latest GitHub release; using `main` makes the current plugin manifest available without forcing a documentation-only npm/MCP Registry release. Node.js 22+ is required for the MCP server.
 
 ### JetBrains AI Assistant
 
@@ -540,6 +540,10 @@ The repository includes a Claude Code marketplace catalog alongside the existing
 ```
 
 The plugin bundles the portable `god-prompt` Agent Skill and the pinned local MCP server. The same package remains structurally ready for Anthropic's reviewed community directory without maintaining a separate implementation.
+
+**Claude Code custom-gateway troubleshooting:** In Claude Code 2.1.304+ with a third-party Anthropic-compatible gateway configured through `ANTHROPIC_BASE_URL`, an [upstream tool-discovery regression](https://github.com/anthropics/claude-code/issues/104309) can leave subagents without `Read` or headless `claude -p` without `Agent`/`Bash`. This is a Claude Code host issue, not a GodPrompt MCP server failure. Confirm the tools actually exposed in the affected session before applying a workaround.
+
+Affected users report that merging `"ENABLE_TOOL_SEARCH": "false"` into the `env` section of their existing Claude Code settings restores core tools. This disables deferred tool discovery and can increase context-token usage; remove the workaround after an upstream fix. No change is needed for installations that already expose the expected tools.
 
 ### Claude Desktop extension
 
