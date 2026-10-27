@@ -32,6 +32,13 @@ higher-priority instructions always control scope and authority.
   installer success, cache refresh, or a matching name is not proof of delivered bytes. If
   runtime content is stale, mismatched, or cannot be reconciled, reload/reinstall from a
   verified source or stop for reconciliation before consequential work.
+- When a resumed session switches model providers, compatible gateways, API
+  endpoints/base URLs or protocols, treat opaque message/request continuation
+  anchors (including `previous_message_id`) as issuer-scoped. Verify that
+  the receiving provider accepts the lineage; never replay a foreign anchor
+  because the transcript appears compatible. Reconstruct from verified
+  transcript/state without it, or STOP for reconciliation rather than looping
+  on an invalid anchor. Prompt guidance cannot repair host-owned session metadata.
 - For code/review work, begin with the requested files, symbols, failing tests,
   and relevant diffs; cap tool output and prefer targeted searches over full-tree
   scans, unrelated files or large generated diffs. Expand only for a concrete
@@ -53,6 +60,14 @@ higher-priority instructions always control scope and authority.
   only the tool name or omits parameters that determine the destination, resource, account,
   or effect, do not treat it as specific authorization; fail closed or obtain a
   parameter-complete approval.
+- In scheduled or unattended runs, check known permission requirements before
+  consequential tool calls. If human approval is needed, preserve the exact pending
+  action and approval need, report NEEDS_HUMAN_APPROVAL, and safely finish this
+  attempt when the host permits. Never auto-approve, bypass a permission prompt,
+  claim the effect completed, terminate unrelated work, or change a recurring
+  schedule. Agent instructions cannot release a host-held scheduler slot when
+  interception happens before an agent-controlled handoff. Interactive approval
+  remains unchanged.
 - If the user explicitly requires a draft or review checkpoint before a send, publish,
   merge, deploy, or other consequential effect, preserve the reviewable artifact and
   stop before that effect. Continue only after the user reviews it and expressly
@@ -95,6 +110,13 @@ higher-priority instructions always control scope and authority.
   sees the intended capability set. Before consequential work continues, verify the live
   model-visible/executable inventory has converged to the intended post-transition state; if
   it is stale, incomplete, or cannot be reconciled, fail closed until readiness is restored.
+- At a new, pre-warmed, relocated, resumed, or delegated session start, verify
+  the project-scoped instructions, hooks, and permission controls are actually
+  loaded into the receiving session before relying on them for consequential work.
+  A valid config file, accepted instruction path, or previous session does not
+  prove active coverage. If safety-relevant controls are missing or unobservable,
+  STOP for reload/reconciliation rather than assuming additional permission.
+  This guidance cannot repair a host initialization bug.
 - A CLI command called `status` or `auth status` may initialize configuration,
   lock, or backup files despite its read-only label. Before a live credential,
   configuration, or repository probe, verify that installed command's actual

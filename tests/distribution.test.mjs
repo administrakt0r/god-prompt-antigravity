@@ -790,3 +790,54 @@ test("binds externalized MCP tool results to their own calls across distribution
   assert.match(scoped, /STOP downstream effects/i);
   assert.match(scoped, /never blindly replay an uncertain mutating call/i);
 });
+
+test("unattended approval handoff is mirrored across consumer surfaces", async () => {
+  const [generated, skill, scoped] = await Promise.all([
+    readFile(new URL("../src/content.ts", import.meta.url), "utf8"),
+    readFile(new URL("../skills/god-prompt/SKILL.md", import.meta.url), "utf8"),
+    readFile(new URL("../distribution/openai/skills/god-prompt/SKILL.md", import.meta.url), "utf8"),
+  ]);
+  const guard = "**Unattended permission-handoff guard:**";
+  assert.equal(generated.split(guard).length - 1, 2);
+  assert.equal(skill.split(guard).length - 1, 1);
+  for (const text of [generated, skill, scoped]) {
+    assert.match(text, /NEEDS_HUMAN_APPROVAL/);
+    assert.match(text, /host.{0,80}scheduler slot/i);
+    assert.match(text, /Never auto-approve/i);
+  }
+});
+
+test("project configuration effective-load readiness across consumer surfaces", async () => {
+  const [generated, portable, scoped] = await Promise.all([
+    readFile(new URL("../src/content.ts", import.meta.url), "utf8"),
+    readFile(new URL("../skills/god-prompt/SKILL.md", import.meta.url), "utf8"),
+    readFile(new URL("../distribution/openai/skills/god-prompt/SKILL.md", import.meta.url), "utf8"),
+  ]);
+  const guard = "**Project configuration effective-load readiness:**";
+  assert.equal(generated.split(guard).length - 1, 2);
+  assert.equal(portable.split(guard).length - 1, 1);
+  for (const value of [generated, portable]) {
+    assert.match(value, /pre-warmed, relocated, or delegated session/);
+    assert.match(value, /effective instruction content\/source and live governing policy/);
+    assert.match(value, /STOP for reload\/reconciliation/);
+  }
+  assert.match(scoped, /pre-warmed, relocated, resumed, or delegated session/);
+  assert.match(scoped, /A valid config file, accepted instruction path/);
+  assert.match(scoped, /STOP for reload\/reconciliation/);
+});
+
+test("provider-switch lineage guard is preserved across consumer distributions", async () => {
+  const [generated, portable, scoped] = await Promise.all([
+    readFile(new URL("../src/content.ts", import.meta.url), "utf8"),
+    readFile(new URL("../skills/god-prompt/SKILL.md", import.meta.url), "utf8"),
+    readFile(new URL("../distribution/openai/skills/god-prompt/SKILL.md", import.meta.url), "utf8"),
+  ]);
+  const heading = "**Provider-transition message-lineage integrity:**";
+  assert.equal(generated.split(heading).length - 1, 2);
+  assert.equal(portable.split(heading).length - 1, 1);
+  for (const content of [generated, portable, scoped]) {
+    assert.match(content, /previous_message_id/);
+    assert.match(content, /transcript\/state/);
+    assert.match(content, /host-owned session metadata/);
+  }
+});

@@ -126,6 +126,30 @@ npx -y god-prompt-mcp
 
 The public npm package runs the local stdio server directly. It requires Node.js 22+ and no API key or account.
 
+**Windows custom stdio clients:** If a client reports `spawn npx ENOENT` or `spawn npx.cmd EINVAL`, it may be trying to execute npm's Windows batch shim without a compatible launcher. Prefer the [hosted endpoint](#hosted-remote-no-nodejs-required), or, for an affected client that accepts a custom stdio command, use:
+
+```json
+{
+  "command": "C:\\Windows\\System32\\cmd.exe",
+  "args": ["/d", "/s", "/c", "npx -y god-prompt-mcp"]
+}
+```
+
+This is a client-launcher workaround, not a GodPrompt MCP server change. Keep existing working cross-platform `npx` configurations unchanged.
+
+### Docker / GHCR (local stdio; no host Node.js)
+
+For MCP clients that can launch a local process, the [public GHCR image](https://github.com/AKzar1el/god-prompt-mcp/pkgs/container/god-prompt-mcp) runs the same seven read-only tools without requiring Node.js on the host. Docker with Linux-container support is required; no API key is needed.
+
+```json
+{
+  "command": "docker",
+  "args": ["run", "--rm", "-i", "ghcr.io/akzar1el/god-prompt-mcp:1.0.44"]
+}
+```
+
+Keep `-i` so the MCP client can exchange JSON-RPC over standard input/output; do not add `-t` (a TTY changes the stdio stream). The version tag selects the verified v1.0.44 image; update it deliberately for future releases rather than silently following the moving `latest` tag. The image is Linux/amd64 and runs as non-root user `10001:10001`. If Docker is unavailable, use the [hosted remote endpoint](#hosted-remote-no-nodejs-required) instead.
+
 ### Glama
 
 GodPrompt MCP is published on [Glama](https://glama.ai/mcp/servers/AKzar1el/god-prompt-mcp). Use the server page to inspect the tools and connect it to a supported MCP client.
@@ -291,7 +315,7 @@ npx -y skills@latest add AKzar1el/god-prompt-mcp --skill god-prompt --agent droi
 Droid discovers compatible project skills under `.agents/skills/`. To add the callable GodPrompt tools as a local stdio MCP server, use Droid's native MCP command with the published version pinned:
 
 ```bash
-droid mcp add god-prompt "npx -y god-prompt-mcp@1.0.42"
+droid mcp add god-prompt "npx -y god-prompt-mcp@1.0.44"
 ```
 
 Open `/mcp` in Droid to verify the server and available tools. The Agent Skill supplies the reusable workflow while MCP exposes GodPrompt's seven progressive-disclosure tools. Node.js 22+ is required for the MCP server.
@@ -317,7 +341,7 @@ npx -y skills@latest add AKzar1el/god-prompt-mcp --skill god-prompt --agent goos
 Goose discovers the copied skill under `.goose/skills/god-prompt/`. To expose GodPrompt's callable tools for a session, start Goose with the published MCP package as an external stdio extension:
 
 ```bash
-goose session --with-extension "npx -y god-prompt-mcp@1.0.42"
+goose session --with-extension "npx -y god-prompt-mcp@1.0.44"
 ```
 
 Goose currently treats Agent Skills and MCP extensions as separate native surfaces, so this path does not depend on Agent Plugins support. The skill supplies the reusable workflow while MCP exposes GodPrompt's seven progressive-disclosure tools. Node.js 22+ is required for the MCP server.
@@ -382,7 +406,7 @@ The Trae target installs the skill under `.trae/skills/god-prompt/`, where TraeC
   "mcpServers": {
     "god-prompt": {
       "command": "npx",
-      "args": ["-y", "god-prompt-mcp@1.0.42"]
+      "args": ["-y", "god-prompt-mcp@1.0.44"]
     }
   }
 }
@@ -401,7 +425,7 @@ npx -y skills@latest add AKzar1el/god-prompt-mcp --skill god-prompt --agent open
 The copied skill lands under `.agents/skills/god-prompt/`, one of OpenClaw's documented project skill roots. To expose GodPrompt's callable tools to OpenClaw-managed agent runtimes as well, register the published stdio server:
 
 ```bash
-openclaw mcp add god-prompt --command npx --arg -y --arg god-prompt-mcp@1.0.42
+openclaw mcp add god-prompt --command npx --arg -y --arg god-prompt-mcp@1.0.44
 openclaw mcp probe god-prompt
 ```
 
@@ -422,7 +446,7 @@ The Qoder target installs the skill under `.qoder/skills/god-prompt/`, where Qod
   "mcpServers": {
     "god-prompt": {
       "command": "npx",
-      "args": ["-y", "god-prompt-mcp@1.0.42"]
+      "args": ["-y", "god-prompt-mcp@1.0.44"]
     }
   }
 }
@@ -462,7 +486,7 @@ Kimi Code CLI can install GodPrompt as one native custom plugin containing the e
 /reload
 ```
 
-The Kimi manifest points at `skills/`, so the `god-prompt` skill remains available through Kimi's normal relevance-based skill loading instead of being forced into every session. The same manifest exposes `god-prompt-mcp@1.0.42` as a local stdio MCP server, preserving the seven progressive-disclosure tools. The explicit `tree/main` URL matters because Kimi's bare GitHub-repository install form prefers the latest GitHub release; using `main` makes the current plugin manifest available without forcing a documentation-only npm/MCP Registry release. Node.js 22+ is required for the MCP server.
+The Kimi manifest points at `skills/`, so the `god-prompt` skill remains available through Kimi's normal relevance-based skill loading instead of being forced into every session. The same manifest exposes `god-prompt-mcp@1.0.44` as a local stdio MCP server, preserving the seven progressive-disclosure tools. The explicit `tree/main` URL matters because Kimi's bare GitHub-repository install form prefers the latest GitHub release; using `main` makes the current plugin manifest available without forcing a documentation-only npm/MCP Registry release. Node.js 22+ is required for the MCP server.
 
 ### JetBrains AI Assistant
 
