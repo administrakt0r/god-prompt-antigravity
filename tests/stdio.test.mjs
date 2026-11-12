@@ -172,11 +172,16 @@ test("builds a stdio MCP server exposing current GodPrompt content", async (t) =
   const clearCases = [
     ["build a REST API for user auth", "BUILD"],
     ["fix the login bug", "DEBUG"],
+    ["troubleshoot intermittent login failures", "DEBUG"],
+    ["diagnose unexpected startup behavior", "DEBUG"],
     ["refactor payment processing without behavior changes", "REFACTOR"],
     ["documentation for the authentication API", "CONTENT"],
     ["design the settings screen", "DESIGN"],
     ["deploy payment service to production", "SHIP"],
     ["audit database indexes", "ANALYZE"],
+    ["verify the endpoint response", "ANALYZE"],
+    ["validate cache headers", "ANALYZE"],
+    ["test API response behavior", "ANALYZE"],
     ["automate nightly backups", "AUTOMATE"],
     ["plan the database migration", "PLAN"],
   ];
@@ -193,10 +198,70 @@ test("builds a stdio MCP server exposing current GodPrompt content", async (t) =
     assert.ok(result.matched_signals.length > 0, description);
   }
 
+  const negatedShipCases = [
+    ["audit the authentication code but do not deploy it", "ANALYZE"],
+    ["fix login validation, never publish or ship it", "DEBUG"],
+    ["review the checkout checklist without push or merge", "ANALYZE"],
+    ["deploy the approved change but do not publish a release", "SHIP"],
+    ["Don\u2019t deploy the endpoint; audit it instead", "ANALYZE"],
+    ["Don\u2019t deploy the old release; deploy the approved patch instead", "SHIP"],
+  ];
+  for (const [description, expected] of negatedShipCases) {
+    const result = await classify(child, pending, `negated-ship-${description.length}`, description);
+    assert.equal(result.task_type, expected, description);
+    if (expected !== "SHIP") {
+      assert.ok(!result.matched_signals.includes("deploy"), description);
+    }
+  }
+
+  const negatedBuildCases = [
+    ["Do not implement or build anything. Review this existing module only.", "ANALYZE"],
+    ["Do not create a new feature; inspect the current behavior instead.", "ANALYZE"],
+    ["Do not build the old interface; build a new API instead.", "BUILD"],
+    ["Don\u2019t build a new feature; inspect existing logic.", "ANALYZE"],
+  ];
+  for (const [description, expected] of negatedBuildCases) {
+    const result = await classify(child, pending, `negated-build-${description.length}`, description);
+    assert.equal(result.task_type, expected, description);
+    assert.equal(result.ambiguous, false, description);
+  }
+
+  const negatedDebugCases = [
+    ["Do not fix the bug. Review the existing code only.", "ANALYZE"],
+    ["Never debug the issue; inspect the current behavior instead.", "ANALYZE"],
+    ["Do not fix the old bug; fix the current crash instead.", "DEBUG"],
+    ["Don\u2019t fix this issue; inspect the logs instead.", "ANALYZE"],
+  ];
+  for (const [description, expected] of negatedDebugCases) {
+    const result = await classify(child, pending, `negated-debug-${description.length}`, description);
+    assert.equal(result.task_type, expected, description);
+  }
+
+  const inspectionIntentCases = [
+    ["Review the feature flag permissions before making changes", "ANALYZE"],
+    ["Audit the open bug reports and summarize findings", "ANALYZE"],
+    ["Inspect the error logs for a root cause", "ANALYZE"],
+    ["Audit the CI pipeline configuration", "ANALYZE"],
+    ["Review the cron workflow setup", "ANALYZE"],
+    ["Audit and automate the CI pipeline", "AUTOMATE"],
+    ["Build a CI pipeline and verify the result", "AUTOMATE"],
+    ["Build a new feature flag system and review it", "BUILD"],
+    ["Fix the login bug and verify the result", "DEBUG"],
+  ];
+  for (const [description, expected] of inspectionIntentCases) {
+    const result = await classify(child, pending, `inspection-intent-${description.length}`, description);
+    assert.equal(result.task_type, expected, description);
+    assert.equal(result.ambiguous, false, description);
+  }
+
   const specificityCases = [
     ["create documentation for the API", "CONTENT"],
     ["make docs for the login flow", "CONTENT"],
     ["design system for our app", "PLAN"],
+    ["create content for the onboarding page", "CONTENT"],
+    ["draft a customer-facing explanation", "CONTENT"],
+    ["debug the authentication handler", "DEBUG"],
+    ["debugging a crash in production", "DEBUG"],
   ];
   for (const [description, expected] of specificityCases) {
     const result = await classify(

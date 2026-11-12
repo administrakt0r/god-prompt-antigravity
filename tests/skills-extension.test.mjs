@@ -1,10 +1,72 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
+import { parseFrontmatter } from "../dist/skills.js";
 import { spawn } from "node:child_process";
 import { createInterface } from "node:readline";
 
 const REQUEST_TIMEOUT_MS = 15000;
+
+test("parses standards-valid skill frontmatter without rejecting optional metadata", () => {
+  const inline = `---\nname: "god-prompt"\ndescription: 'Help users debug software.'\nlicense: MIT\ncompatibility: Requires Node 22\nallowed-tools: Bash Read\nmetadata:\n  author: GodPrompt\n  version: "1"\n---\n# Skill`;
+  assert.deepEqual(parseFrontmatter(inline), {
+    name: "god-prompt",
+    description: "Help users debug software.",
+    license: "MIT",
+  });
+
+  const folded = `---\nname: god-prompt\ndescription: >\n  Help debug production software\n  and verify changes.\nmetadata:\n  author: GodPrompt\n---\n`;
+  assert.equal(parseFrontmatter(folded).description, "Help debug production software and verify changes.\n");
+  const literal = `---\nname: god-prompt\ndescription: |\n  First line\n  second line\nlicense: MIT\n---\n`;
+  assert.equal(parseFrontmatter(literal).description, "First line\nsecond line\n");
+  assert.throws(() => parseFrontmatter("---\nname: god-prompt\n---\n"), /name and description/);
+  for (const blockType of ["|", ">", "|-", ">-"]) {
+    const emptyBlock = `---\nname: god-prompt\ndescription: ${blockType}\n  \n---\n`;
+    assert.throws(
+      () => parseFrontmatter(emptyBlock),
+      /name and description/,
+      `Empty ${blockType} description must not produce a valid skill`,
+    );
+  }
+  for (const duplicate of [
+    "name: other-name",
+    "description: Another description",
+    "license: GPL-3.0",
+  ]) {
+    const key = duplicate.split(":")[0];
+    const malformed = `---\nname: god-prompt\ndescription: Help debug safely.\nlicense: MIT\n${duplicate}\n---\n`;
+    assert.throws(() => parseFrontmatter(malformed), /duplicate/i, `Reject repeated ${key}`);
+  }
+  const duplicateAfterBlock = `---\nname: god-prompt\ndescription: |\n  First description\ndescription: Second description\n---\n`;
+  assert.throws(() => parseFrontmatter(duplicateAfterBlock), /duplicate/i);
+
+  // YAML permits comments after whitespace outside quotes, including block indicators.
+  const commented = `---\nname: god-prompt # skill identifier\ndescription: "Debug #1 safely" # explanation\nlicense: MIT # SPDX\n---\n`;
+  assert.deepEqual(parseFrontmatter(commented), {
+    name: "god-prompt",
+    description: "Debug #1 safely",
+    license: "MIT",
+  });
+  const literalComment = `---\nname: god-prompt\ndescription: | # multiline text\n  Keep this # within the description\n---\n`;
+  assert.equal(parseFrontmatter(literalComment).description, "Keep this # within the description\n");
+  const plainHashes = `---\nname: god-prompt\ndescription: Support C# and https://example.test/#fragment # trailing note\n---\n`;
+  assert.equal(parseFrontmatter(plainHashes).description, "Support C# and https://example.test/#fragment");
+  const escapedQuotes = `---\nname: god-prompt\ndescription: "Use \\"#tag\\" carefully" # human note\n---\n`;
+  assert.equal(parseFrontmatter(escapedQuotes).description, 'Use "#tag" carefully');
+  const doubledQuotes = `---\nname: god-prompt\ndescription: 'It''s #important' # human note\n---\n`;
+  assert.equal(parseFrontmatter(doubledQuotes).description, "It's #important");
+});
+
+test("preserves YAML block scalar chomping for skill descriptions", () => {
+  const description = (indicator, content) =>
+    parseFrontmatter(`---\nname: god-prompt\ndescription: ${indicator}\n${content}---\n`).description;
+
+  assert.equal(description("|-", "  First line\n  second line\n"), "First line\nsecond line");
+  assert.equal(description(">-", "  First line\n  second line\n"), "First line second line");
+  assert.equal(description("|+", "  First line\n\n\n"), "First line\n\n\n");
+  assert.equal(description(">+", "  First line\n  second line\n\n"), "First line second line\n\n");
+  assert.equal(description("|", "  Preserve trailing spaces  \n"), "Preserve trailing spaces  \n");
+});
 const REQUEST_META = {
   "io.modelcontextprotocol/protocolVersion": "2026-07-28",
   "io.modelcontextprotocol/clientInfo": {

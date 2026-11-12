@@ -110,13 +110,17 @@ For the lowest-friction ChatGPT path, install [GodPrompt from the first-party Pl
 
 ### ChatGPT (hosted remote MCP)
 
-On ChatGPT web, supported Business and Enterprise/Edu workspaces can connect the hosted endpoint as a custom MCP app in Developer Mode:
+On ChatGPT web, supported Business and Enterprise/Edu workspaces can connect GodPrompt's hosted endpoint as a custom MCP plugin. Workspace permissions apply: Business admins/owners can create connections; Enterprise/Edu admins/owners and specifically authorized developers can create connections, while only admins/owners publish them for a workspace.
 
-1. Enable Developer Mode, then open **Settings > Apps > Create** (workspace controls may require an admin or authorized developer).
-2. Use `https://god-prompt-mcp.tomi-seregi99.workers.dev/mcp` as the MCP endpoint and select no authentication.
-3. Choose **Scan Tools**, confirm the seven read-only GodPrompt tools, then create and enable the app for the intended workspace users.
+1. Open **Plugins**, select **+**, then **Add custom MCP server**. The current Plugins flow does **not** require Developer Mode.
+2. Enter a name and `https://god-prompt-mcp.tomi-seregi99.workers.dev/mcp` as the public HTTPS MCP endpoint. Choose **no authentication**; GodPrompt requires no API key.
+3. Review the risk warning and select **I understand and want to continue**, then **Create as a plugin**.
+4. Review the discovered seven read-only GodPrompt tools and metadata, then install the plugin if your workspace permits it.
+5. Start a new ChatGPT chat, type `@`, select the installed GodPrompt plugin, and try a read-only tool. Workspace approval may be required.
 
-ChatGPT connects to remote MCP servers rather than local stdio servers. See OpenAI's [Developer mode and MCP apps in ChatGPT](https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt) documentation for current availability and workspace controls.
+**Legacy custom-app setup:** If your workspace still uses the older interface, open **Settings > Apps > Create** (or the workspace's app settings, if you are an admin/owner), use the same endpoint with no authentication, choose **Scan Tools**, then **Create**. This remains an alternative, not a prerequisite for the current Plugins flow.
+
+ChatGPT connects to remote MCP servers rather than directly to local stdio servers. See OpenAI's [Connecting custom MCP servers in ChatGPT](https://help.openai.com/en/articles/12584461-connecting-custom-mcp-servers-in-chatgpt) for current permissions and setup steps.
 
 ### npm / npx (recommended)
 
@@ -315,7 +319,7 @@ npx -y skills@latest add AKzar1el/god-prompt-mcp --skill god-prompt --agent droi
 Droid discovers compatible project skills under `.agents/skills/`. To add the callable GodPrompt tools as a local stdio MCP server, use Droid's native MCP command with the published version pinned:
 
 ```bash
-droid mcp add god-prompt "npx -y god-prompt-mcp@1.0.44"
+droid mcp add god-prompt "npx -y god-prompt-mcp@1.0.45"
 ```
 
 Open `/mcp` in Droid to verify the server and available tools. The Agent Skill supplies the reusable workflow while MCP exposes GodPrompt's seven progressive-disclosure tools. Node.js 22+ is required for the MCP server.
@@ -341,7 +345,7 @@ npx -y skills@latest add AKzar1el/god-prompt-mcp --skill god-prompt --agent goos
 Goose discovers the copied skill under `.goose/skills/god-prompt/`. To expose GodPrompt's callable tools for a session, start Goose with the published MCP package as an external stdio extension:
 
 ```bash
-goose session --with-extension "npx -y god-prompt-mcp@1.0.44"
+goose session --with-extension "npx -y god-prompt-mcp@1.0.45"
 ```
 
 Goose currently treats Agent Skills and MCP extensions as separate native surfaces, so this path does not depend on Agent Plugins support. The skill supplies the reusable workflow while MCP exposes GodPrompt's seven progressive-disclosure tools. Node.js 22+ is required for the MCP server.
@@ -406,7 +410,7 @@ The Trae target installs the skill under `.trae/skills/god-prompt/`, where TraeC
   "mcpServers": {
     "god-prompt": {
       "command": "npx",
-      "args": ["-y", "god-prompt-mcp@1.0.44"]
+      "args": ["-y", "god-prompt-mcp@1.0.45"]
     }
   }
 }
@@ -425,7 +429,7 @@ npx -y skills@latest add AKzar1el/god-prompt-mcp --skill god-prompt --agent open
 The copied skill lands under `.agents/skills/god-prompt/`, one of OpenClaw's documented project skill roots. To expose GodPrompt's callable tools to OpenClaw-managed agent runtimes as well, register the published stdio server:
 
 ```bash
-openclaw mcp add god-prompt --command npx --arg -y --arg god-prompt-mcp@1.0.44
+openclaw mcp add god-prompt --command npx --arg -y --arg god-prompt-mcp@1.0.45
 openclaw mcp probe god-prompt
 ```
 
@@ -446,7 +450,7 @@ The Qoder target installs the skill under `.qoder/skills/god-prompt/`, where Qod
   "mcpServers": {
     "god-prompt": {
       "command": "npx",
-      "args": ["-y", "god-prompt-mcp@1.0.44"]
+      "args": ["-y", "god-prompt-mcp@1.0.45"]
     }
   }
 }
@@ -486,7 +490,7 @@ Kimi Code CLI can install GodPrompt as one native custom plugin containing the e
 /reload
 ```
 
-The Kimi manifest points at `skills/`, so the `god-prompt` skill remains available through Kimi's normal relevance-based skill loading instead of being forced into every session. The same manifest exposes `god-prompt-mcp@1.0.44` as a local stdio MCP server, preserving the seven progressive-disclosure tools. The explicit `tree/main` URL matters because Kimi's bare GitHub-repository install form prefers the latest GitHub release; using `main` makes the current plugin manifest available without forcing a documentation-only npm/MCP Registry release. Node.js 22+ is required for the MCP server.
+The Kimi manifest points at `skills/`, so the `god-prompt` skill remains available through Kimi's normal relevance-based skill loading instead of being forced into every session. The same manifest exposes `god-prompt-mcp@1.0.45` as a local stdio MCP server, preserving the seven progressive-disclosure tools. The explicit `tree/main` URL matters because Kimi's bare GitHub-repository install form prefers the latest GitHub release; using `main` makes the current plugin manifest available without forcing a documentation-only npm/MCP Registry release. Node.js 22+ is required for the MCP server.
 
 ### JetBrains AI Assistant
 

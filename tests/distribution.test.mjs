@@ -35,6 +35,10 @@ const npmPublishWorkflow = await readFile(
   new URL("../.github/workflows/publish-npm.yml", import.meta.url),
   "utf8"
 );
+const registryDockerfile = await readFile(
+  new URL("../Dockerfile.mcp-registry", import.meta.url),
+  "utf8"
+);
 const ciWorkflow = await readFile(
   new URL("../.github/workflows/ci.yml", import.meta.url),
   "utf8"
@@ -167,7 +171,7 @@ test("keeps privacy copy aligned with local and hosted transports", () => {
 
 test("uses the split MCP SDK v2 without the Workers-only Agents SDK", () => {
   assert.equal(packageJson.dependencies?.["@modelcontextprotocol/sdk"], undefined);
-  assert.equal(packageJson.dependencies?.["@modelcontextprotocol/server"], "2.3.0");
+  assert.equal(packageJson.dependencies?.["@modelcontextprotocol/server"], "2.4.0");
   assert.equal(packageJson.dependencies?.zod, "^4.6.7");
   assert.equal(packageJson.dependencies?.agents, undefined);
   assert.equal(packageJson.devDependencies?.agents, undefined);
@@ -549,10 +553,28 @@ test("dispatches npm publishing explicitly from the registry release workflow", 
   assert.match(npmPublishWorkflow, /version:\s*\n\s*required:\s*true/);
   assert.match(npmPublishWorkflow, /source_sha:\s*\n\s*required:\s*true/);
   assert.match(npmPublishWorkflow, /ref:\s*\$\{\{ inputs\.source_sha \}\}/);
-  assert.match(npmPublishWorkflow, /test "\$VERSION" = "\$\{\{ inputs\.version \}\}"/);
-  assert.match(npmPublishWorkflow, /test "\$TAG_SHA" = "\$\{\{ inputs\.source_sha \}\}"/);
+  assert.match(npmPublishWorkflow, /EXPECTED_VERSION:\s*\$\{\{ inputs\.version \}\}/);
+  assert.match(npmPublishWorkflow, /EXPECTED_SOURCE_SHA:\s*\$\{\{ inputs\.source_sha \}\}/);
+  assert.match(npmPublishWorkflow, /test "\$VERSION" = "\$EXPECTED_VERSION"/);
+  assert.match(npmPublishWorkflow, /test "\$TAG_SHA" = "\$EXPECTED_SOURCE_SHA"/);
+  assert.match(npmPublishWorkflow, /test "\$\(git rev-parse HEAD\)" = "\$EXPECTED_SOURCE_SHA"/);
+  assert.match(npmPublishWorkflow, /\[\[ "\$EXPECTED_SOURCE_SHA" =~ \^\[0-9a-f\]\{40\}\$ \]\]/);
+  const verifyScript = npmPublishWorkflow.split("      - name: Verify source, release, and npm versions")[1].split("      - name: Check whether")[0].split("        run: |\n")[1];
+  assert.doesNotMatch(verifyScript, /\$\{\{\s*inputs\./, "untrusted dispatch expressions must not appear in Bash script text");
   assert.match(npmPublishWorkflow, /npm view "god-prompt-mcp@\$\{VERSION\}" version/);
   assert.match(npmPublishWorkflow, /already published; skipping/);
+});
+
+test("uses the patched Node 22 LTS container base for build and runtime", () => {
+  assert.deepEqual(
+    [...registryDockerfile.matchAll(/^FROM\s+([^\s]+)\s+AS\s+(\w+)/gm)].map((match) => [match[1], match[2]]),
+    [
+      ["node:22.23.4-bookworm-slim", "build"],
+      ["node:22.23.4-bookworm-slim", "runtime"],
+    ]
+  );
+  assert.match(registryDockerfile, /^USER 10001:10001$/m);
+  assert.match(registryDockerfile, /^ENTRYPOINT \["node", "dist\/stdio\.js"\]$/m);
 });
 
 test("uses generated release notes instead of a generic compatibility template", () => {
@@ -574,6 +596,22 @@ test("does not release on workflow-only main pushes", () => {
   assert.match(pushBlock, /server\.json/);
   assert.doesNotMatch(pushBlock, /publish-npm\.yml/);
   assert.doesNotMatch(pushBlock, /publish-registry\.yml/);
+});
+
+test("verifies a pinned Registry publisher before extracting it in both jobs", () => {
+  const installSteps = registryPublishWorkflow
+    .split("      - name: Install mcp-publisher\n")
+    .slice(1);
+  assert.equal(installSteps.length, 2);
+  for (const step of installSteps) {
+    const body = step.split("\n      - name:")[0];
+    assert.match(body, /releases\/download\/v1\.8\.7\/mcp-publisher_linux_amd64\.tar\.gz/);
+    assert.match(body, /00b21004149a4ce66f0782508ae4a2bce67d1bea395a8da0bd8028159fb59579/);
+    assert.doesNotMatch(body, /releases\/latest\/download|curl[^\n]*\|\s*tar/);
+    const verifiedAt = body.indexOf("sha256sum -c -");
+    const extractedAt = body.indexOf("tar -xzf");
+    assert.ok(verifiedAt !== -1 && extractedAt > verifiedAt, "verify SHA-256 before extraction");
+  }
 });
 
 test("uses the setup-node OIDC path without the v6 dummy auth-token fallback", () => {

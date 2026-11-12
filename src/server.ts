@@ -5,7 +5,7 @@ import { CORE_SKILL } from "./skill-content.js";
 
 export const SERVER_INFO = {
   name: "god-prompt-mcp",
-  version: "1.0.44",
+  version: "1.0.45",
 } as const;
 
 export const SERVER_INSTRUCTIONS =
@@ -25,7 +25,7 @@ const TASK_TYPES = {
     description: "Creating new functionality",
   },
   DEBUG: {
-    triggers: ["fix", "bug", "error", "broken", "crash", "fail", "issue", "wrong"],
+    triggers: ["fix", "debug", "debugging", "troubleshoot", "diagnose", "bug", "error", "broken", "crash", "fail", "issue", "wrong"],
     protocol: "Root cause → 4-layer defense",
     description: "Finding and fixing defects",
   },
@@ -35,7 +35,7 @@ const TASK_TYPES = {
     description: "Improving code without changing behavior",
   },
   CONTENT: {
-    triggers: ["write", "article", "documentation", "blog", "docs", "copy", "text"],
+    triggers: ["write", "draft", "content", "article", "documentation", "blog", "docs", "copy", "text"],
     protocol: "Research → verify → SEO",
     description: "Writing or editing content",
   },
@@ -50,7 +50,7 @@ const TASK_TYPES = {
     description: "Deploying to production",
   },
   ANALYZE: {
-    triggers: ["audit", "review", "check", "analyze", "inspect", "assess", "evaluate"],
+    triggers: ["audit", "review", "check", "analyze", "inspect", "assess", "evaluate", "verify", "validate", "test"],
     protocol: "Evidence-based investigation",
     description: "Auditing and reviewing existing systems",
   },
@@ -82,6 +82,7 @@ const ACTION_SIGNALS = new Set([
   "clean",
   "create",
   "deploy",
+  "diagnose",
   "design",
   "evaluate",
   "fix",
@@ -102,7 +103,11 @@ const ACTION_SIGNALS = new Set([
   "review",
   "ship",
   "simplify",
+  "test",
   "think",
+  "troubleshoot",
+  "validate",
+  "verify",
   "write",
 ]);
 
@@ -129,6 +134,19 @@ function triggerIndex(text: string, trigger: string): number {
   const escaped = trigger.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const match = new RegExp(`(^|[^a-z0-9])${escaped}($|[^a-z0-9])`).exec(text);
   return match ? match.index + match[1].length : -1;
+}
+
+function hasAffirmativeActionTrigger(text: string, trigger: string): boolean {
+  const escaped = trigger.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const matches = text.matchAll(new RegExp(`(^|[^a-z0-9])(${escaped})(?=$|[^a-z0-9])`, "g"));
+  for (const match of matches) {
+    const prefix = text.slice(0, match.index + match[1].length).split(/[.!?;,]/).at(-1) ?? "";
+    // A forbidden downstream action is not a requested deployment action.
+    if (!/(?:\b(?:do not|don't|never|without|avoid|must not|should not|no)\s+(?:(?!(?:but|then|however)\b)[a-z0-9-]+\s+){0,3})$/.test(prefix)) {
+      return true;
+    }
+  }
+  return false;
 }
 
 function signalStrength(trigger: string): number {
@@ -186,12 +204,36 @@ function classifyTask(description: string): {
   alternativeTaskTypes: TaskType[];
   ambiguous: boolean;
 } {
-  const normalized = description.normalize("NFKC").trim().replace(/\s+/gu, " ").toLowerCase();
+  const normalized = description.normalize("NFKC")
+    .replace(/[\u2018\u2019\u02bc]/gu, "'")
+    .trim().replace(/\s+/gu, " ").toLowerCase();
   const candidates: Candidate[] = [];
 
+  const debugActions = ["fix", "debug", "debugging", "troubleshoot", "diagnose"];
+  const explicitlyNegatedDebug = debugActions.some(
+    (trigger) => hasTrigger(normalized, trigger) && !hasAffirmativeActionTrigger(normalized, trigger),
+  );
+  const affirmativeDebug = debugActions.some(
+    (trigger) => hasAffirmativeActionTrigger(normalized, trigger),
+  );
+  const inspectionRequested = ["audit", "review", "check", "analyze", "inspect", "assess", "evaluate", "verify", "validate", "test"]
+    .some((trigger) => hasTrigger(normalized, trigger));
+  const affirmativeBuild = ["create", "implement", "add", "build", "make"]
+    .some((trigger) => hasAffirmativeActionTrigger(normalized, trigger));
+
   for (const [type, info] of Object.entries(TASK_TYPES)) {
+    // An inspection request is not authorization to build/debug just because it names a feature or bug.
+    if (inspectionRequested && ((type === "BUILD" && !affirmativeBuild) ||
+      (type === "DEBUG" && !affirmativeDebug))) continue;
+    // CI, cron and workflow names are audit subjects, not requests to automate them.
+    if (type === "AUTOMATE" && inspectionRequested && !affirmativeBuild &&
+      !hasAffirmativeActionTrigger(normalized, "automate")) continue;
+    // Mentions of bugs or errors must not override an explicit no-debug instruction.
+    if (type === "DEBUG" && explicitlyNegatedDebug && !affirmativeDebug) continue;
     const matches = info.triggers
-      .filter((trigger) => hasTrigger(normalized, trigger))
+      .filter((trigger) => type === "SHIP" || type === "BUILD"
+        ? hasAffirmativeActionTrigger(normalized, trigger)
+        : hasTrigger(normalized, trigger))
       .map((trigger) => ({
         signal: trigger,
         strength: signalStrength(trigger),

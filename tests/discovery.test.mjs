@@ -56,7 +56,28 @@ test("serves the current ARD well-known path and predecessor alias", async () =>
   }
 });
 
+test("serves metadata-only HEAD probes for both discovery routes", async () => {
+  for (const pathname of ["/.well-known/ard.json", "/.well-known/ai-catalog.json"]) {
+    const url = `${PUBLIC_ORIGIN}${pathname}`;
+    const getResponse = await worker.fetch(new Request(url));
+    const headResponse = await worker.fetch(new Request(url, { method: "HEAD" }));
+
+    assert.equal(headResponse.status, getResponse.status, pathname);
+    assert.equal(headResponse.headers.get("content-type"), getResponse.headers.get("content-type"));
+    assert.equal(headResponse.headers.get("cache-control"), getResponse.headers.get("cache-control"));
+    assert.equal(headResponse.headers.get("link"), getResponse.headers.get("link"));
+    assert.equal(await headResponse.text(), "", pathname);
+  }
+});
+
 test("keeps unrelated Worker paths closed", async () => {
   const response = await worker.fetch(new Request(`${PUBLIC_ORIGIN}/not-a-route`));
   assert.equal(response.status, 404);
+});
+
+
+test("advertises POST on rejected MCP GET requests", async () => {
+  const response = await worker.fetch(new Request(`${PUBLIC_ORIGIN}/mcp`, { method: "GET" }));
+  assert.equal(response.status, 405);
+  assert.equal(response.headers.get("allow"), "POST");
 });
